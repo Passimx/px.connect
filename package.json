@@ -39,8 +39,5 @@
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.2"
-  },
-  "peerDependencies": {
-    "telegraf": "^4.0.0"
   }
 }
