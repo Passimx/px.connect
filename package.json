@@ -1,26 +1,27 @@
 {
-  "name": "@passimx/archiver",
-  "version": "1.0.6",
-  "description": "archiver for telegram chats",
+  "name": "@passimx/px.connect",
+  "version": "0.0.1",
+  "description": "Trustless websocket connection package",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Passimx/archiver.git"
+    "url": "git+https://github.com/Passimx/px.connect.git"
   },
   "keywords": [
-    "telegram",
-    "chats",
-    "telegraph",
-    "analytics",
-    "keep",
-    "save",
-    "export",
-    "logs"
+    "websockets",
+    "networks",
+    "cryptography",
+    "channels",
+    "secutiry",
+    "trustless-server",
+    "socket.io-alternative",
+    "p2p",
+    "client-driven"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "publish": "tsc && npm login && npm publish --access public",
+    "release": "tsc && npm login && npm publish --access public",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
     "prepare": "husky install"
