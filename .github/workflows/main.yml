@@ -18,6 +18,7 @@ jobs:
       contents: write
 
   publish:
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
