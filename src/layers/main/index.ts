@@ -9,16 +9,37 @@ import { CallToType } from '../connection-layer/types/call-to.type';
 import { RegisterActionEventsEnum } from '../register-actions-layer/types/register-action-events.enum';
 import { PxConnectInterface } from './types/px-connect.interface';
 
+/**
+ * Main orchestration class managing cross-tab communication and network connection layers.
+ */
 export class PxConnect implements PxConnectInterface {
   private readonly tabsLayer: TabsLayer;
   private readonly connectionLayer: ConnectionLayer;
   private readonly registerActionsLayer: RegisterActionsLayer;
 
+  /**
+   * Connects the current tab to the tab management system.
+   */
   public connect: TabsLayer['connect'];
+
+  /**
+   * Subscribes to local events or registered actions.
+   */
   public on: RegisterActionsLayer['on'];
+
+  /**
+   * Creates a new communication channel for data transmission.
+   */
   public createChannel: ConnectionLayer['createChannel'];
+
+  /**
+   * Returns the unique identifier of the current active connection.
+   */
   public getConnectionId: ConnectionLayer['getConnectionId'];
 
+  /**
+   * Disconnects active layers, clears internal subscriptions, and removes window lifecycle listeners.
+   */
   public disconnect() {
     this.tabsLayer.disconnect();
     this.connectionLayer.disconnect();
@@ -28,7 +49,13 @@ export class PxConnect implements PxConnectInterface {
       window.removeEventListener('beforeunload', () => this.disconnect());
   }
 
-  constructor(url: string, params?: Partial<ParamsType>) {
+  /**
+   * PxConnect instance constructor.
+   *
+   * @param {string} url - Connection address
+   * @param {ParamsType} [params] - Settings params.
+   */
+  constructor(url: string, params?: ParamsType) {
     if (typeof window !== 'undefined')
       window.addEventListener('beforeunload', () => this.disconnect());
 
@@ -50,7 +77,12 @@ export class PxConnect implements PxConnectInterface {
     );
   }
 
-  public joinConnectionToChannels(data: string[]) {
+  /**
+   * Joins the current connection to the channels.
+   *
+   * @param data - Array of channel names to join.
+   */
+  public join(data: string[]) {
     BroadcastChannelService.send({
       event: RequestEventsEnum.SEND_MESSAGE,
       data: { event: RequestEventsEnum.JOIN_CONNECTION_TO_CHANNELS, data },

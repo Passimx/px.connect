@@ -11,7 +11,7 @@ export interface PxConnectInterface {
 
   getConnectionId(): string | undefined;
 
-  joinConnectionToChannels(data: string[]): unknown;
+  join(data: string[]): unknown;
 
   createChannel(payload?: CreateChannelPayload): Promise<CreatedChannelType>;
 

@@ -1,4 +1,8 @@
+/**
+ * Params type.
+ *
+ * @property {number} [callActionWaitMs] - How many ms wait callback callAction()
+ */
 export type ParamsType = {
-  /** How many ms wait method callAction() */
-  readonly callActionWaitMs: number;
+  readonly callActionWaitMs?: number;
 };
