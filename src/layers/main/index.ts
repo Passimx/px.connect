@@ -18,6 +18,34 @@ export class PxConnect implements PxConnectInterface {
   private readonly registerActionsLayer: RegisterActionsLayer;
 
   /**
+   * PxConnect instance constructor.
+   *
+   * @param url - Connection address.
+   * @param params - Settings params.
+   */
+  constructor(url: string, params?: ParamsType) {
+    if (typeof window !== 'undefined')
+      window.addEventListener('beforeunload', () => this.disconnect());
+
+    this.registerActionsLayer = new RegisterActionsLayer(
+      params?.callActionWaitMs,
+    );
+    this.tabsLayer = new TabsLayer();
+    this.connectionLayer = new ConnectionLayer(url);
+
+    this.tabsLayer.onUpdate((payload) => this.onTabsUpdate(payload));
+
+    this.connect = this.tabsLayer.connect.bind(this.tabsLayer);
+    this.createChannel = this.connectionLayer.createChannel.bind(
+      this.connectionLayer,
+    );
+    this.on = this.registerActionsLayer.on.bind(this.registerActionsLayer);
+    this.getConnectionId = this.connectionLayer.getConnectionId.bind(
+      this.connectionLayer,
+    );
+  }
+
+  /**
    * Connects the current tab to the tab management system.
    */
   public connect: TabsLayer['connect'];
@@ -47,34 +75,6 @@ export class PxConnect implements PxConnectInterface {
 
     if (typeof window !== 'undefined')
       window.removeEventListener('beforeunload', () => this.disconnect());
-  }
-
-  /**
-   * PxConnect instance constructor.
-   *
-   * @param {string} url - Connection address
-   * @param {ParamsType} [params] - Settings params.
-   */
-  constructor(url: string, params?: ParamsType) {
-    if (typeof window !== 'undefined')
-      window.addEventListener('beforeunload', () => this.disconnect());
-
-    this.registerActionsLayer = new RegisterActionsLayer(
-      params?.callActionWaitMs,
-    );
-    this.tabsLayer = new TabsLayer();
-    this.connectionLayer = new ConnectionLayer(url);
-
-    this.tabsLayer.onUpdate((payload) => this.onTabsUpdate(payload));
-
-    this.connect = this.tabsLayer.connect.bind(this.tabsLayer);
-    this.createChannel = this.connectionLayer.createChannel.bind(
-      this.connectionLayer,
-    );
-    this.on = this.registerActionsLayer.on.bind(this.registerActionsLayer);
-    this.getConnectionId = this.connectionLayer.getConnectionId.bind(
-      this.connectionLayer,
-    );
   }
 
   /**
