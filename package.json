@@ -1,6 +1,6 @@
 {
   "name": "@passimx/px.connect",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Trustless websocket connection package",
   "repository": {
     "type": "git",
