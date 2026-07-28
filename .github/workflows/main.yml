@@ -22,15 +22,20 @@ jobs:
     needs: version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
+          fetch-depth: 0
+          ref: main
 
       - name: Update repository
         run: |
           git fetch origin
           git reset --hard origin/main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
 
       - run: npm ci
       - run: npm run build
