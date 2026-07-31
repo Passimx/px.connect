@@ -2,9 +2,19 @@
   "name": "@passimx/px.connect",
   "version": "1.1.2",
   "description": "Trustless websocket connection package",
+  "author": "@passimx",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Passimx/px.connect.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "websockets",
@@ -17,19 +27,12 @@
     "p2p",
     "client-driven"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
     "prepare": "husky install"
   },
-  "author": "@passimx",
-  "license": "ISC",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",

@@ -110,7 +110,7 @@ When a channel is the destination, the request is automatically routed to the ch
 
 Client A ──── callAction({ connectionId }) ───► Client B
 <br>
-Client B ── reply(...) ─────────────► Client A
+Client B ──── reply(...) ───────────► Client A
 
 ### Connection → Channel
 
