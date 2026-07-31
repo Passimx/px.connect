@@ -95,6 +95,17 @@ export class ConnectionLayer implements ConnectionLayerInterface {
           this.ws?.send(message);
         });
         this.messages = [];
+
+        for (const channel of Array.from(this.channels.values())) {
+          const { init, data } = channel;
+          BroadcastChannelService.send({
+            event: RequestEventsEnum.SEND_MESSAGE,
+            data: {
+              event: RequestEventsEnum.CREATE_CHANNEL,
+              data: { init, data },
+            },
+          });
+        }
       };
 
       this.ws.onclose = () => {

@@ -25,37 +25,4 @@ export interface PxConnectInterface {
   onAction: RegisterActionsLayerInterface['onAction'];
 
   offAction: RegisterActionsLayerInterface['offAction'];
-
-  // publish(
-  //   to: { channelId: string },
-  //   data: { action: string; payload?: unknown },
-  // ): Promise<void>;
-  //
-  // onPublish(
-  //   handler: (router: {
-  //     on: (
-  //       action: string,
-  //       handler: (context: {
-  //         from: { channelId: string };
-  //         to: { connectinId: string };
-  //         date: Date;
-  //         payload: unknown;
-  //       }) => unknown,
-  //     ) => unknown;
-  //   }) => unknown,
-  // ): unknown;
-  //
-  // offPublish(
-  //   handler: (router: {
-  //     on: (
-  //       action: string,
-  //       handler: (context: {
-  //         from: { channelId: string };
-  //         to: { connectinId: string };
-  //         date: Date;
-  //         payload: unknown;
-  //       }) => unknown,
-  //     ) => unknown;
-  //   }) => unknown,
-  // ): unknown;
 }
