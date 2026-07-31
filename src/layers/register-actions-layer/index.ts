@@ -1,22 +1,33 @@
 import { RegisterActionsLayerInterface } from './types/register-actions-layer.interface';
 import { BroadcastMessageType } from '../../services/types/broadcast-message.type';
-import { LocalHandler } from './types/local-handler';
 import { LocalEventsType } from './types/local-events-enum.type';
 import { LocalHandlerFnType } from './types/local-handler-fn.type';
 import { RegisterActionEventsEnum } from './types/register-action-events.enum';
 import { ReplyCallbackType } from './types/reply-callback.type';
+import { CallToType } from '../connection-layer/types/call-to.type';
+import { CallDataType } from '../connection-layer/types/call-data.type';
+import { BroadcastChannelService } from '../../services/broadcast-channel.service';
+import { RequestEventsEnum } from '../connection-layer/types/request-events.enum';
 import { ReplyCallbackFnType } from './types/reply-callback-fn.type';
+import { OnActionFnType } from './types/on-action-fn.type';
+import { OffActionFnType } from './types/off-action-fn.type';
+import { Context } from './types/context.type';
+import { RequestCallEventType } from '../connection-layer/types/request-call-event.type';
+import { ResponseReplyType } from '../connection-layer/types/response-reply.type';
 
 export class RegisterActionsLayer implements RegisterActionsLayerInterface {
-  private broadcastChannel: BroadcastChannel;
-
-  private onLocalHandlers: LocalHandler[] = [];
-  private replyHandlers: Map<string, ReplyCallbackType> = new Map<
-    string,
-    ReplyCallbackType
-  >();
-
   private readonly callActionWaitMs: number;
+
+  private readonly broadcastChannel: BroadcastChannel;
+
+  private readonly onLocalHandlers: Map<
+    LocalEventsType,
+    Set<LocalHandlerFnType>
+  >;
+
+  private readonly replyHandlers: Map<string, ReplyCallbackType>;
+
+  private readonly onActionsHandlers: Map<string, Set<ReplyCallbackFnType>>;
 
   constructor(callActionWaitMs: number = 10 * 1000) {
     this.callActionWaitMs = callActionWaitMs;
@@ -24,57 +35,132 @@ export class RegisterActionsLayer implements RegisterActionsLayerInterface {
     this.broadcastChannel.onmessage = (
       event: MessageEvent<BroadcastMessageType>,
     ) => this.onBroadcastChannel(event);
-  }
 
-  public on(trigger: LocalEventsType, handler: LocalHandlerFnType) {
-    this.onLocalHandlers.push({ trigger, handler });
-  }
-
-  public onReply(actionId: string, callback: ReplyCallbackFnType) {
-    const timeHandler = setTimeout(() => {
-      this.onReplyEmit(actionId);
-    }, this.callActionWaitMs);
-
-    this.replyHandlers.set(actionId, { func: callback, timeHandler });
+    this.onLocalHandlers = new Map<LocalEventsType, Set<LocalHandlerFnType>>();
+    this.replyHandlers = new Map<string, ReplyCallbackType>();
+    this.onActionsHandlers = new Map<string, Set<ReplyCallbackFnType>>();
   }
 
   public disconnect() {
     this.broadcastChannel?.close();
   }
 
-  private emit(event: LocalEventsType) {
-    for (const item of this.onLocalHandlers) {
-      if (item.trigger === event) {
-        void item.handler();
-      }
+  public on(trigger: LocalEventsType, handler: LocalHandlerFnType) {
+    const handlers = this.onLocalHandlers.get(trigger) ?? new Set();
+    handlers.add(handler);
+    this.onLocalHandlers.set(trigger, handlers);
+  }
+
+  public off(trigger: LocalEventsType, handler: LocalHandlerFnType) {
+    const handlers = this.onLocalHandlers.get(trigger) ?? new Set();
+    handlers.delete(handler);
+    this.onLocalHandlers.set(trigger, handlers);
+  }
+
+  public callAction<T = any>(
+    to: CallToType,
+    data: CallDataType,
+  ): Promise<T | undefined> {
+    return new Promise((resolve) => {
+      const actionId = `${Date.now()}_${globalThis.crypto.randomUUID()}`;
+
+      BroadcastChannelService.send({
+        event: RequestEventsEnum.SEND_MESSAGE,
+        data: {
+          event: RequestEventsEnum.CALL_ACTION,
+          data: { to, action: data.action, actionId, payload: data.payload },
+        },
+      });
+
+      const timeHandler = setTimeout(() => {
+        resolve(undefined);
+        this.replyHandlers.delete(actionId);
+      }, this.callActionWaitMs);
+
+      this.replyHandlers.set(actionId, { func: resolve, timeHandler });
+    });
+  }
+
+  public onAction(callback: OnActionFnType) {
+    const routes = {
+      on: (action: string, handler: (ctx: Context) => unknown) => {
+        const set = this.onActionsHandlers.get(action) ?? new Set();
+        set.add(handler);
+        this.onActionsHandlers.set(action, set);
+      },
+    };
+
+    callback(routes);
+  }
+
+  public offAction(callback: OffActionFnType) {
+    const routes = {
+      off: (action: string, handler: (ctx: Context) => unknown) => {
+        const set = this.onActionsHandlers.get(action) ?? new Set();
+        set.delete(handler);
+
+        if (set.size === 0) this.onActionsHandlers.delete(action);
+        else this.onActionsHandlers.set(action, set);
+      },
+    };
+
+    callback(routes);
+  }
+
+  private _on(event: LocalEventsType) {
+    const handlers = this.onLocalHandlers.get(event) ?? new Set();
+    for (const item of Array.from(handlers)) {
+      void item();
     }
   }
 
-  private onReplyEmit(actionId: string, payload?: unknown) {
-    const handler = this.replyHandlers.get(actionId);
+  private _onAction(data: RequestCallEventType) {
+    const handlers = this.onActionsHandlers.get(data.action);
+    if (!handlers) return;
 
-    if (handler) {
-      handler.func(payload);
+    for (const handler of Array.from(handlers)) {
+      const context = {
+        from: data.from,
+        to: data.to,
+        payload: data.payload,
+        reply: (payload: unknown) => {
+          BroadcastChannelService.send({
+            event: RequestEventsEnum.SEND_MESSAGE,
+            data: {
+              event: RequestEventsEnum.REPLY_ACTION,
+              data: {
+                to: { connectionId: data.from.connection.id },
+                actionId: data.actionId,
+                payload,
+              },
+            },
+          });
+        },
+      };
+
+      handler(context);
     }
-    this.replyHandlers.delete(actionId);
+  }
+
+  private _onReplyAction(data: ResponseReplyType) {
+    const handler = this.replyHandlers.get(data.actionId);
+    if (!handler) return;
+
+    handler.func(data.payload);
+    clearTimeout(handler.timeHandler);
+    this.replyHandlers.delete(data.actionId);
   }
 
   private onBroadcastChannel(payload: MessageEvent<BroadcastMessageType>) {
     switch (payload.data.event) {
-      case RegisterActionEventsEnum.ON_EMIT:
-        this.emit(payload.data.data);
+      case RegisterActionEventsEnum.ON:
+        this._on(payload.data.data);
         break;
-      case RegisterActionEventsEnum.ON_REPLY_EMIT:
-        this.onReplyEmit(payload.data.data.actionId, payload.data.data.payload);
+      case RegisterActionEventsEnum.ON_ACTION:
+        this._onAction(payload.data.data);
         break;
-      // case RegisterActionEventsEnum.ON_CHANNEL_EMIT:
-      //   this.onChannelEmit(
-      //     payload.data.data.channelId,
-      //     payload.data.data.action,
-      //     payload.data.data.payload,
-      //   );
-      //   break;
-      case RegisterActionEventsEnum.ON_MESSAGE_EMIT:
+      case RegisterActionEventsEnum.ON_REPLY_ACTION:
+        this._onReplyAction(payload.data.data);
         break;
     }
   }

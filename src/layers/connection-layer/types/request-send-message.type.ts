@@ -7,9 +7,19 @@ export type JoinConnectionToChannels = {
   data: string[];
 };
 
+export type LeaveConnectionToChannels = {
+  event: RequestEventsEnum.LEAVE_CONNECTION_TO_CHANNELS;
+  data: string[];
+};
+
 export type SendMessage = {
   event: RequestEventsEnum.CALL_ACTION;
   data: { to: CallToType; action: string; actionId: string; payload?: unknown };
+};
+
+export type ReplyMessage = {
+  event: RequestEventsEnum.REPLY_ACTION;
+  data: { to: CallToType; actionId: string; payload?: unknown };
 };
 
 export type CreateChannel = {
@@ -28,6 +38,8 @@ export type SendToChannel = {
 
 export type RequestSendMessageType =
   | JoinConnectionToChannels
+  | LeaveConnectionToChannels
   | SendMessage
   | CreateChannel
-  | SendToChannel;
+  | SendToChannel
+  | ReplyMessage;

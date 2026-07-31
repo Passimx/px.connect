@@ -1,8 +1,8 @@
-type CallToChannel = {
+export type CallToChannel = {
   channelId: string;
 };
 
-type CallToConnection = {
+export type CallToConnection = {
   connectionId: string;
 };
 

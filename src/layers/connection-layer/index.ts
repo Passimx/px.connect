@@ -59,20 +59,24 @@ export class ConnectionLayer implements ConnectionLayerInterface {
                 intervalPing,
               );
               break;
+
             case ResponseEventsEnum.GET_CONNECTION_ID:
               this.connectionId = payload.data;
               resolve();
               break;
-            case ResponseEventsEnum.REPLY_ACTION:
+
+            case ResponseEventsEnum.CALL_ACTION:
               BroadcastChannelService.send({
-                event: RegisterActionEventsEnum.ON_REPLY_EMIT,
-                data: {
-                  actionId: payload.data.actionId,
-                  payload: payload.data.payload,
-                },
+                event: RegisterActionEventsEnum.ON_ACTION,
+                data: payload.data,
               });
               break;
-            default:
+
+            case ResponseEventsEnum.REPLY_ACTION:
+              BroadcastChannelService.send({
+                event: RegisterActionEventsEnum.ON_REPLY_ACTION,
+                data: payload.data,
+              });
               break;
           }
 
@@ -96,7 +100,7 @@ export class ConnectionLayer implements ConnectionLayerInterface {
       this.ws.onclose = () => {
         this.scheduleReconnect();
         BroadcastChannelService.send({
-          event: RegisterActionEventsEnum.ON_EMIT,
+          event: RegisterActionEventsEnum.ON,
           data: LocalEventsEnum.DISCONNECT,
         });
       };

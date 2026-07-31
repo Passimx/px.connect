@@ -5,7 +5,6 @@ import { ParamsType } from './types/params.type';
 import { BroadcastChannelService } from '../../services/broadcast-channel.service';
 import { RequestEventsEnum } from '../connection-layer/types/request-events.enum';
 import { LocalEventsEnum } from '../register-actions-layer/types/local-events.enum';
-import { CallToType } from '../connection-layer/types/call-to.type';
 import { RegisterActionEventsEnum } from '../register-actions-layer/types/register-action-events.enum';
 import { PxConnectInterface } from './types/px-connect.interface';
 
@@ -40,8 +39,18 @@ export class PxConnect implements PxConnectInterface {
       this.connectionLayer,
     );
     this.on = this.registerActionsLayer.on.bind(this.registerActionsLayer);
+    this.off = this.registerActionsLayer.off.bind(this.registerActionsLayer);
     this.getConnectionId = this.connectionLayer.getConnectionId.bind(
       this.connectionLayer,
+    );
+    this.callAction = this.registerActionsLayer.callAction.bind(
+      this.registerActionsLayer,
+    );
+    this.onAction = this.registerActionsLayer.onAction.bind(
+      this.registerActionsLayer,
+    );
+    this.offAction = this.registerActionsLayer.offAction.bind(
+      this.registerActionsLayer,
     );
   }
 
@@ -49,21 +58,6 @@ export class PxConnect implements PxConnectInterface {
    * Connects the current tab to the tab management system.
    */
   public connect: TabsLayer['connect'];
-
-  /**
-   * Subscribes to local events or registered actions.
-   */
-  public on: RegisterActionsLayer['on'];
-
-  /**
-   * Creates a new communication channel for data transmission.
-   */
-  public createChannel: ConnectionLayer['createChannel'];
-
-  /**
-   * Returns the unique identifier of the current active connection.
-   */
-  public getConnectionId: ConnectionLayer['getConnectionId'];
 
   /**
    * Disconnects active layers, clears internal subscriptions, and removes window lifecycle listeners.
@@ -78,41 +72,61 @@ export class PxConnect implements PxConnectInterface {
   }
 
   /**
+   * Subscribes to local events or registered actions.
+   */
+  public on: RegisterActionsLayer['on'];
+
+  /**
+   * Unsubscribes to local events or registered actions.
+   */
+  public off: RegisterActionsLayer['off'];
+
+  /**
+   * Returns the unique identifier of the current active connection.
+   */
+  public getConnectionId: ConnectionLayer['getConnectionId'];
+
+  /**
    * Joins the current connection to the channels.
    *
-   * @param data - Array of channel names to join.
+   * @param data - Array of channel ids to join.
    */
-  public join(data: string[]) {
+  public join(...data: string[]) {
     BroadcastChannelService.send({
       event: RequestEventsEnum.SEND_MESSAGE,
       data: { event: RequestEventsEnum.JOIN_CONNECTION_TO_CHANNELS, data },
     });
   }
 
-  public callAction<T = any>(
-    to: CallToType,
-    data: { action: string; payload?: unknown },
-    callback?: (payload: T | undefined) => unknown,
-  ) {
-    const actionId = `${Date.now()}_${window.crypto.randomUUID()}`;
-
+  /**
+   * Joins the current connection to the channels.
+   *
+   * @param data - Array of channel ids to leave.
+   */
+  public leave(...data: string[]) {
     BroadcastChannelService.send({
       event: RequestEventsEnum.SEND_MESSAGE,
-      data: {
-        event: RequestEventsEnum.CALL_ACTION,
-        data: { to, action: data.action, actionId, payload: data.payload },
-      },
+      data: { event: RequestEventsEnum.LEAVE_CONNECTION_TO_CHANNELS, data },
     });
-
-    if (callback) this.registerActionsLayer.onReply(actionId, callback);
   }
+
+  /**
+   * Creates new channel for data transmission.
+   */
+  public createChannel: ConnectionLayer['createChannel'];
+
+  public callAction: RegisterActionsLayer['callAction'];
+
+  public onAction: RegisterActionsLayer['onAction'];
+
+  public offAction: RegisterActionsLayer['offAction'];
 
   private onTabsUpdate = async (isMainTab: boolean) => {
     if (isMainTab) await this.connectionLayer.connect();
     else this.connectionLayer.disconnect();
 
     BroadcastChannelService.send({
-      event: RegisterActionEventsEnum.ON_EMIT,
+      event: RegisterActionEventsEnum.ON,
       data: LocalEventsEnum.CONNECT,
     });
   };

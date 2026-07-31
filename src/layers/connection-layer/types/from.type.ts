@@ -1,6 +1,6 @@
 import { ChannelInitType } from './channel-init.type';
 
-type FromChannel = {
+export type FromChannel = {
   channel: {
     id: string;
     init: ChannelInitType;
@@ -8,6 +8,6 @@ type FromChannel = {
   };
 };
 
-type FromConnection = { connection: { id: string } };
+export type FromConnection = { connection: { id: string } };
 
 export type FromType = FromChannel | FromConnection;

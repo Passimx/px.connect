@@ -1,27 +1,61 @@
-import { CallToType } from '../../connection-layer/types/call-to.type';
-import { CreateChannelPayload } from '../../connection-layer/types/create-channel-payload';
-import { CreatedChannelType } from '../../connection-layer/types/created-channel.type';
-import { LocalEventsType } from '../../register-actions-layer/types/local-events-enum.type';
-import { LocalHandlerFnType } from '../../register-actions-layer/types/local-handler-fn.type';
+import { RegisterActionsLayerInterface } from '../../register-actions-layer/types/register-actions-layer.interface';
+import { TabsLayerInterface } from '../../tabs-layer/types/tabs-layer.interface';
+import { ConnectionLayerInterface } from '../../connection-layer/types/connection-layer.interface';
+import { ConnectionLayer } from '../../connection-layer';
 
 export interface PxConnectInterface {
-  connect(...args: unknown[]): unknown;
+  connect: TabsLayerInterface['connect'];
 
-  disconnect(): unknown;
+  disconnect(): void;
 
-  on(trigger: LocalEventsType, handler: LocalHandlerFnType): unknown;
+  on: RegisterActionsLayerInterface['on'];
 
-  getConnectionId(): string | undefined;
+  off: RegisterActionsLayerInterface['off'];
 
-  join(data: string[]): unknown;
+  getConnectionId: ConnectionLayerInterface['getConnectionId'];
 
-  createChannel(payload?: CreateChannelPayload): Promise<CreatedChannelType>;
+  join(...data: string[]): void;
 
-  callAction<T = any>(
-    to: CallToType,
-    data: { action: string; payload?: unknown },
-    callback?: (payload: T | undefined) => unknown,
-  ): unknown;
+  leave(...data: string[]): void;
 
-  // action(): unknown;
+  createChannel: ConnectionLayer['createChannel'];
+
+  callAction: RegisterActionsLayerInterface['callAction'];
+
+  onAction: RegisterActionsLayerInterface['onAction'];
+
+  offAction: RegisterActionsLayerInterface['offAction'];
+
+  // publish(
+  //   to: { channelId: string },
+  //   data: { action: string; payload?: unknown },
+  // ): Promise<void>;
+  //
+  // onPublish(
+  //   handler: (router: {
+  //     on: (
+  //       action: string,
+  //       handler: (context: {
+  //         from: { channelId: string };
+  //         to: { connectinId: string };
+  //         date: Date;
+  //         payload: unknown;
+  //       }) => unknown,
+  //     ) => unknown;
+  //   }) => unknown,
+  // ): unknown;
+  //
+  // offPublish(
+  //   handler: (router: {
+  //     on: (
+  //       action: string,
+  //       handler: (context: {
+  //         from: { channelId: string };
+  //         to: { connectinId: string };
+  //         date: Date;
+  //         payload: unknown;
+  //       }) => unknown,
+  //     ) => unknown;
+  //   }) => unknown,
+  // ): unknown;
 }
