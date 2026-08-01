@@ -6,14 +6,23 @@ import { ExportInitType } from './types/export-init.type';
 import { CryptoService } from '../../services/crypto.service';
 import { BroadcastChannelService } from '../../services/broadcast-channel.service';
 import { RequestEventsEnum } from '../connection-layer/types/request-events.enum';
+import { BroadcastMessageType } from '../../services/types/broadcast-message.type';
+import { LocalEventsEnum } from '../register-actions-layer/types/local-events.enum';
+import { RegisterActionEventsEnum } from '../register-actions-layer/types/register-action-events.enum';
 
 export class ChannelsLayers implements ChannelsInterface {
   private readonly joinedChannels: Set<string>;
   private readonly ownerChannels: Map<string, CreatedChannelType>;
 
+  private readonly broadcastChannel: BroadcastChannel;
+
   constructor() {
     this.ownerChannels = new Map<string, CreatedChannelType>();
     this.joinedChannels = new Set();
+    this.broadcastChannel = BroadcastChannelService.getChannel();
+    this.broadcastChannel.onmessage = (
+      event: MessageEvent<BroadcastMessageType>,
+    ) => this.onBroadcastChannel(event);
   }
 
   public join(...data: string[]) {
@@ -163,18 +172,25 @@ export class ChannelsLayers implements ChannelsInterface {
     return channel;
   }
 
-  // TODO
-  // add action for reconnect
-  // again join and add channels
+  private onBroadcastChannel(payload: MessageEvent<BroadcastMessageType>) {
+    if (
+      payload.data.event !== RegisterActionEventsEnum.ON ||
+      payload.data.data !== `${LocalEventsEnum.RECONNECT}`
+    )
+      return;
 
-  //   for (const channel of Array.from(this.channels.values())) {
-  //   const { init, data } = channel;
-  // BroadcastChannelService.send({
-  //   event: RequestEventsEnum.SEND_MESSAGE,
-  //   data: {
-  //     event: RequestEventsEnum.CREATE_CHANNEL,
-  //     data: { init, data },
-  //   },
-  // });
-  // }
+    for (const channel of Array.from(this.ownerChannels.values())) {
+      const { init, data } = channel;
+      BroadcastChannelService.send({
+        event: RequestEventsEnum.SEND_MESSAGE,
+        data: {
+          event: RequestEventsEnum.CREATE_CHANNEL,
+          data: { init, data },
+        },
+      });
+    }
+
+    const channels = Array.from(this.joinedChannels);
+    if (channels.length > 0) this.join(...channels);
+  }
 }

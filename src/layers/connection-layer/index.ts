@@ -15,15 +15,16 @@ import { RegisterActionEventsEnum } from '../register-actions-layer/types/regist
 import { LocalEventsEnum } from '../register-actions-layer/types/local-events.enum';
 
 export class ConnectionLayer implements ConnectionLayerInterface {
+  private readonly url: string;
+  private readonly broadcastChannel: BroadcastChannel;
+
   private connectionId: string | undefined = undefined;
-  private url: string;
   private messages: string[] = [];
   private ws: WebSocket | null = null;
   private reconnectTimer: NodeJS.Timeout | undefined;
   private reconnectDelay: number = minReconnectDelay;
   private pongTimeoutTimer: NodeJS.Timeout | undefined;
   private pingIntervalTimer: NodeJS.Timeout | undefined;
-  private broadcastChannel: BroadcastChannel;
 
   constructor(url: string) {
     this.url = url;
@@ -32,6 +33,7 @@ export class ConnectionLayer implements ConnectionLayerInterface {
 
   public connect(): Promise<void> {
     return new Promise((resolve, reject) => {
+      this.reconnectTimer = undefined;
       if (this.ws) return resolve();
 
       this.ws = new WebSocket(this.url);
@@ -81,6 +83,13 @@ export class ConnectionLayer implements ConnectionLayerInterface {
       };
 
       this.ws.onopen = () => {
+        if (this.reconnectDelay !== minReconnectDelay) {
+          BroadcastChannelService.send({
+            event: RegisterActionEventsEnum.ON,
+            data: LocalEventsEnum.RECONNECT,
+          });
+        }
+
         this.reconnectDelay = minReconnectDelay;
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = undefined;
@@ -157,6 +166,7 @@ export class ConnectionLayer implements ConnectionLayerInterface {
   }
 
   private scheduleReconnect() {
+    if (this.reconnectTimer) return;
     this.ws = null;
     this.clearAllTimeouts();
     this.reconnectTimer = setTimeout(() => {
