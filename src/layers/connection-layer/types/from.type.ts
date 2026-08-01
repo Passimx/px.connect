@@ -1,4 +1,4 @@
-import { ChannelInitType } from './channel-init.type';
+import { ChannelInitType } from '../../channels-layers/types/channel-init.type';
 
 export type FromChannel = {
   channel: {

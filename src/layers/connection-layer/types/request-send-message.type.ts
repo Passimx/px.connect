@@ -1,6 +1,6 @@
 import { RequestEventsEnum } from './request-events.enum';
 import { CallToType } from './call-to.type';
-import { ChannelInitType } from './channel-init.type';
+import { ChannelInitType } from '../../channels-layers/types/channel-init.type';
 
 export type JoinConnectionToChannels = {
   event: RequestEventsEnum.JOIN_CONNECTION_TO_CHANNELS;

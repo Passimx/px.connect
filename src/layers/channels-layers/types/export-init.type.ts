@@ -1,7 +1,7 @@
 /**
  * Initial data required to create or initialize a channel.
  */
-export type ExportInitType = {
+export type ExportInitType<T = unknown> = {
   /** Verification key of the channel owner. */
   ownerVerifyKeyString: string;
 
@@ -15,5 +15,5 @@ export type ExportInitType = {
   sendSignKeyString: string;
 
   /** Initial baseline data of the channel. */
-  info?: unknown;
+  info?: T;
 };

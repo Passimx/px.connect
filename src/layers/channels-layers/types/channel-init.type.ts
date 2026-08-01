@@ -1,5 +1,5 @@
-export type ChannelInitType = {
+export type ChannelInitType<T = unknown> = {
   ownerVerifyKeyString: string;
   sendVerifyKeyString: string;
-  info?: any;
+  info?: T;
 };
