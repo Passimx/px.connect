@@ -1,5 +1,4 @@
 import { TabsLayer } from '../layers/tabs-layer';
-import { ConnectionLayer } from '../layers/connection-layer';
 import { RegisterActionsLayer } from '../layers/register-actions-layer';
 import { ParamsType } from './types/params.type';
 import { BroadcastChannelService } from '../services/broadcast-channel.service';
@@ -11,15 +10,16 @@ import { ChannelsInterface } from '../layers/channels-layers/types/channels.inte
 import { RegisterActionsLayerInterface } from '../layers/register-actions-layer/types/register-actions-layer.interface';
 import { ConnectionLayerInterface } from '../layers/connection-layer/types/connection-layer.interface';
 import { TabsLayerInterface } from '../layers/tabs-layer/types/tabs-layer.interface';
+import { ConnectionLayer } from '../layers/connection-layer';
 
 /**
  * Main orchestration class managing cross-tab communication and network connection layers.
  */
 export class PxConnect implements PxConnectInterface {
-  private readonly tabsLayer: TabsLayer;
+  private readonly tabsLayer: TabsLayerInterface;
   private readonly channelsLayers: ChannelsLayers;
-  private readonly connectionLayer: ConnectionLayer;
-  private readonly registerActionsLayer: RegisterActionsLayer;
+  private readonly connectionLayer: ConnectionLayerInterface;
+  private readonly registerActionsLayer: RegisterActionsLayerInterface;
 
   /**
    * PxConnect instance constructor.

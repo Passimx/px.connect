@@ -31,7 +31,7 @@ export class RegisterActionsLayer implements RegisterActionsLayerInterface {
 
   constructor(callActionWaitMs: number = 10 * 1000) {
     this.callActionWaitMs = callActionWaitMs;
-    this.broadcastChannel = new BroadcastChannel('px-channel');
+    this.broadcastChannel = BroadcastChannelService.getChannel();
     this.broadcastChannel.onmessage = (
       event: MessageEvent<BroadcastMessageType>,
     ) => this.onBroadcastChannel(event);

@@ -27,7 +27,7 @@ export class ConnectionLayer implements ConnectionLayerInterface {
 
   constructor(url: string) {
     this.url = url;
-    this.broadcastChannel = new BroadcastChannel('px-channel');
+    this.broadcastChannel = BroadcastChannelService.getChannel();
   }
 
   public connect(): Promise<void> {

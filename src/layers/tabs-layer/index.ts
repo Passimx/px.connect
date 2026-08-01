@@ -18,7 +18,7 @@ export class TabsLayer implements TabsLayerInterface {
     this.electionTimeout = undefined;
     this.isMainTab = false;
 
-    this.broadcastChannel = new BroadcastChannel('px-channel');
+    this.broadcastChannel = BroadcastChannelService.getChannel();
     this.broadcastChannel.onmessage = this.onmessage;
   }
 
